@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  django_network:
+
+services:
+  web:
+    build: .
+    networks:
+      - django_network
+    command: bash -c "sleep 10 && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=my_django_secret
+      - DATABASE_URL=mysql://root:123456@db:3306/django
+    depends_on:
+      db:
+        condition: service_started
+
+  db:
+    image: mysql:8.1
+    env_file:
+      - .env
+    networks:
+      - django_network
+    volumes:
+      - mysql_data:/var/lib/mysql/
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+#    ports:
+#      - "3306:3306"
+
+volumes:
+  mysql_data:
